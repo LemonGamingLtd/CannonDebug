@@ -61,7 +61,7 @@ public final class CmdClear extends CommandExecutor {
             if (user.isPreviewing()) {
                 for (BlockSelection selection : user.getSelections()) {
                     Block block = selection.getLocation().getBlock();
-                    ((Player) sender).sendBlockChange(block.getLocation(), block.getType(), block.getData());
+                    ((Player) sender).sendBlockChange(block.getLocation(), block.getBlockData());
                 }
             }
 

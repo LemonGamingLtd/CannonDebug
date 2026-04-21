@@ -25,10 +25,8 @@
 
 package org.originmc.cannondebug;
 
-import lombok.Data;
 import org.bukkit.Location;
 
-@Data
 public final class BlockSelection {
 
     private final int id;
@@ -36,5 +34,26 @@ public final class BlockSelection {
     private final Location location;
 
     private EntityTracker tracker = null;
+
+    public BlockSelection(int id, Location location) {
+        this.id = id;
+        this.location = location;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public EntityTracker getTracker() {
+        return tracker;
+    }
+
+    public void setTracker(EntityTracker tracker) {
+        this.tracker = tracker;
+    }
 
 }

@@ -147,13 +147,13 @@ public final class CannonDebugPlugin extends JavaPlugin implements Runnable {
             // Update users preview.
             if (user.isPreviewing()) {
                 getServer().getScheduler().runTask(this, () ->
-                        player.sendBlockChange(block.getLocation(), block.getType(), block.getData()));
+                        player.sendBlockChange(block.getLocation(), block.getBlockData()));
             }
             return;
         }
 
         // Do nothing if the user has too many selections.
-        int max = NumberUtils.getNumericalPerm(player, "cannondebug.maxselections.");
+        int max = NumberUtils.getNumericalPerm(player, "cannondebug.maxselections.", 25);
         if (user.getSelections().size() >= max) {
             player.sendMessage(String.format(RED + "You have too many selections! " + GRAY + "(Max = %s)", max));
             return;
@@ -162,7 +162,7 @@ public final class CannonDebugPlugin extends JavaPlugin implements Runnable {
         // Update users preview.
         if (user.isPreviewing()) {
             getServer().getScheduler().runTask(this, () ->
-                    player.sendBlockChange(block.getLocation(), Material.EMERALD_BLOCK, (byte) 0));
+                    player.sendBlockChange(block.getLocation(), Material.EMERALD_BLOCK.createBlockData()));
         }
 
         // Add the selected location.

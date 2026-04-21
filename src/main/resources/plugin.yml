@@ -1,8 +1,9 @@
 name: ${project.name}
-main: ${project.groupId}.${project.artifactId}.${project.name}Plugin
+main: org.originmc.cannondebug.CannonDebugPlugin
 version: ${project.version}
 author: Sudzzy
-depend: [WorldEdit]
+api-version: '1.21'
+softdepend: [WorldEdit, FastAsyncWorldEdit]
 
 commands:
   cannondebug:
@@ -20,7 +21,9 @@ permissions:
   cannondebug.history.help: {default: false}
   cannondebug.history.id: {default: false}
   cannondebug.history.tick: {default: false}
+  cannondebug.maxarea.500: {default: false}
   cannondebug.maxarea.unlimited: {default: false}
+  cannondebug.maxselections.25: {default: false}
   cannondebug.maxselections.unlimited: {default: false}
   cannondebug.page: {default: false}
   cannondebug.preview: {default: false}

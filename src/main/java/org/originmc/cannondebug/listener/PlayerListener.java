@@ -7,6 +7,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.originmc.cannondebug.CannonDebugPlugin;
@@ -34,6 +35,7 @@ public class PlayerListener implements Listener {
     public void addSelection(PlayerInteractEvent event) {
         // Do nothing if the player is not right clicking a block.
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
 
         // Do nothing if the player has no user profile attached.
         Player player = event.getPlayer();
@@ -48,6 +50,7 @@ public class PlayerListener implements Listener {
 
         // Do nothing if the block is not selectable.
         Block block = event.getClickedBlock();
+        if (block == null) return;
         plugin.handleSelection(user, block);
     }
 
@@ -55,6 +58,7 @@ public class PlayerListener implements Listener {
     public void removeSelection(PlayerInteractEvent event) {
         // Do nothing if the player is not right clicking a block.
         if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
 
         // Do nothing if the player has no user profile attached.
         Player player = event.getPlayer();
@@ -69,6 +73,7 @@ public class PlayerListener implements Listener {
 
         // Do nothing if the block is not selectable.
         Block block = event.getClickedBlock();
+        if (block == null) return;
         plugin.handleSelection(user, block);
     }
 

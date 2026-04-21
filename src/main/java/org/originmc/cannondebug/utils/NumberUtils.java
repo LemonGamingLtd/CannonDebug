@@ -54,23 +54,30 @@ public final class NumberUtils {
      * @return highest value that begins with permission string.
      */
     public static int getNumericalPerm(Permissible permissible, String permission) {
+        return getNumericalPerm(permissible, permission, 0);
+    }
+
+    public static int getNumericalPerm(Permissible permissible, String permission, int defaultValue) {
         int value = 0;
+        boolean matched = false;
         for (PermissionAttachmentInfo perm : permissible.getEffectivePermissions()) {
             // Do nothing if permission does not start with called.
+            if (!perm.getValue()) continue;
+
             String checkPerm = perm.getPermission();
             if (!checkPerm.startsWith(permission)) continue;
 
-            // Do nothing if permission has no third argument.
-            String[] segmented = checkPerm.split("\\.");
-            if (segmented.length != 3) continue;
+            String suffix = checkPerm.substring(permission.length());
+            if (suffix.isEmpty()) continue;
 
             // Attempt to read the next argument as an integer.
             int comparison = 0;
             try {
-                comparison = Integer.parseInt(segmented[2]);
+                comparison = Integer.parseInt(suffix);
+                matched = true;
             } catch (NumberFormatException e) {
                 // Return maximum value if user has the unlimited permission.
-                if (segmented[2].equalsIgnoreCase("unlimited")) {
+                if (suffix.equalsIgnoreCase("unlimited")) {
                     return Integer.MAX_VALUE;
                 }
             }
@@ -80,7 +87,7 @@ public final class NumberUtils {
                 value = comparison;
             }
         }
-        return value;
+        return matched ? value : defaultValue;
     }
 
 }

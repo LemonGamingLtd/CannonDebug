@@ -25,7 +25,6 @@
 
 package org.originmc.cannondebug;
 
-import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -34,7 +33,6 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 public final class EntityTracker {
 
     private final EntityType entityType;
@@ -48,5 +46,42 @@ public final class EntityTracker {
     private long deathTick = -1;
 
     private Entity entity;
+
+    public EntityTracker(EntityType entityType, long spawnTick) {
+        this.entityType = entityType;
+        this.spawnTick = spawnTick;
+    }
+
+    public EntityType getEntityType() {
+        return entityType;
+    }
+
+    public long getSpawnTick() {
+        return spawnTick;
+    }
+
+    public List<Location> getLocationHistory() {
+        return locationHistory;
+    }
+
+    public List<Vector> getVelocityHistory() {
+        return velocityHistory;
+    }
+
+    public long getDeathTick() {
+        return deathTick;
+    }
+
+    public void setDeathTick(long deathTick) {
+        this.deathTick = deathTick;
+    }
+
+    public Entity getEntity() {
+        return entity;
+    }
+
+    public void setEntity(Entity entity) {
+        this.entity = entity;
+    }
 
 }

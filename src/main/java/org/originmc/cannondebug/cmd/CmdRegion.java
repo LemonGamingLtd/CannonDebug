@@ -25,13 +25,15 @@
 
 package org.originmc.cannondebug.cmd;
 
-import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldedit.bukkit.selections.CuboidSelection;
-import com.sk89q.worldedit.bukkit.selections.Selection;
-import org.bukkit.Location;
+import com.sk89q.worldedit.IncompleteRegionException;
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.CuboidRegion;
+import com.sk89q.worldedit.regions.Region;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.originmc.cannondebug.CannonDebugPlugin;
 import org.originmc.cannondebug.utils.NumberUtils;
 
@@ -47,35 +49,42 @@ public final class CmdRegion extends CommandExecutor {
 
     @Override
     public boolean perform() {
-        // Do nothing if WorldEdit is not installed.
-        Plugin plugin = this.plugin.getServer().getPluginManager().getPlugin("WorldEdit");
-        if (plugin == null) {
-            sender.sendMessage(RED + "WorldEdit was not found on this server!");
+        Player player = (Player) sender;
+        LocalSession session = WorldEdit.getInstance().getSessionManager().get(BukkitAdapter.adapt(player));
+
+        Region selection;
+        com.sk89q.worldedit.world.World selectionWorld = session.getSelectionWorld();
+        try {
+            if (selectionWorld == null) {
+                throw new IncompleteRegionException();
+            }
+            selection = session.getSelection(selectionWorld);
+        } catch (IncompleteRegionException e) {
+            sender.sendMessage(RED + "You must make a WorldEdit selection first!");
             return true;
         }
 
         // Do nothing if selection is not a cuboid.
-        WorldEditPlugin worldEdit = (WorldEditPlugin) plugin;
-        Selection selection = worldEdit.getSelection((Player) sender);
-        if (!(selection instanceof CuboidSelection)) {
+        if (!(selection instanceof CuboidRegion)) {
             sender.sendMessage(RED + "Region selected must be a cuboid!");
             return true;
         }
 
         // Do nothing if selection is too large.
-        int maxArea = NumberUtils.getNumericalPerm(sender, "cannondebug.maxarea.");
-        if (selection.getArea() > maxArea) {
+        int maxArea = NumberUtils.getNumericalPerm(sender, "cannondebug.maxarea.", 500);
+        if (selection.getVolume() > maxArea) {
             sender.sendMessage(String.format(RED + "Region selected is too large! " + GRAY + "(Max area = %s blocks)", maxArea));
             return true;
         }
 
         // Handle selection for all blocks within this region.
-        Location max = selection.getMaximumPoint();
-        Location min = selection.getMinimumPoint();
-        for (int x = min.getBlockX(); x <= max.getBlockX(); x++) {
-            for (int y = min.getBlockY(); y <= max.getBlockY(); y++) {
-                for (int z = min.getBlockZ(); z <= max.getBlockZ(); z++) {
-                    this.plugin.handleSelection(user, max.getWorld().getBlockAt(x, y, z));
+        org.bukkit.World world = BukkitAdapter.adapt(selectionWorld);
+        BlockVector3 max = selection.getMaximumPoint();
+        BlockVector3 min = selection.getMinimumPoint();
+        for (int x = min.x(); x <= max.x(); x++) {
+            for (int y = min.y(); y <= max.y(); y++) {
+                for (int z = min.z(); z <= max.z(); z++) {
+                    this.plugin.handleSelection(user, world.getBlockAt(x, y, z));
                 }
             }
         }

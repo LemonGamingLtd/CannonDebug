@@ -64,6 +64,11 @@ public final class CmdHistoryID extends CommandExecutor {
         // Generate a new fancy message line to add to the pager.
         List<FancyMessage> lines = new ArrayList<>();
         EntityTracker tracker = selection.getTracker();
+        if (tracker == null) {
+            sender.sendMessage(ChatColor.RED + "No profiling history has been recorded for that selection yet.");
+            return true;
+        }
+
         int lifespan = tracker.getLocationHistory().size();
         Location initial = tracker.getLocationHistory().get(0);
         for (int i = 0; i < lifespan; i++) {

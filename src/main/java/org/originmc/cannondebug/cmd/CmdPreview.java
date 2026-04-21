@@ -61,7 +61,7 @@ public final class CmdPreview extends CommandExecutor {
 
     private void previewOn() {
         for (BlockSelection selection : user.getSelections()) {
-            ((Player) sender).sendBlockChange(selection.getLocation(), Material.EMERALD_BLOCK, (byte) 0);
+            ((Player) sender).sendBlockChange(selection.getLocation(), Material.EMERALD_BLOCK.createBlockData());
         }
         sender.sendMessage(ChatColor.YELLOW + "Preview mode now enabled.");
     }
@@ -69,7 +69,7 @@ public final class CmdPreview extends CommandExecutor {
     private void previewOff() {
         for (BlockSelection selection : user.getSelections()) {
             Block block = selection.getLocation().getBlock();
-            ((Player) sender).sendBlockChange(selection.getLocation(), block.getType(), block.getData());
+            ((Player) sender).sendBlockChange(selection.getLocation(), block.getBlockData());
         }
         sender.sendMessage(ChatColor.YELLOW + "Preview mode now disabled.");
     }

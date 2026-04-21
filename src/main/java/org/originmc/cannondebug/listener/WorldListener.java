@@ -2,7 +2,7 @@ package org.originmc.cannondebug.listener;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
@@ -10,11 +10,15 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
-import org.bukkit.material.Dispenser;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.originmc.cannondebug.BlockSelection;
 import org.originmc.cannondebug.CannonDebugPlugin;
 import org.originmc.cannondebug.EntityTracker;
 import org.originmc.cannondebug.User;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import static org.originmc.cannondebug.utils.MaterialUtils.isDispenser;
 import static org.originmc.cannondebug.utils.MaterialUtils.isExplosives;
@@ -22,14 +26,20 @@ import static org.originmc.cannondebug.utils.MaterialUtils.isStacker;
 
 public class WorldListener implements Listener {
 
+    private static final long MAX_PENDING_TICKS = 2;
+
+    private static final double TNT_MATCH_RADIUS_SQUARED = 2.25D;
+
     private final CannonDebugPlugin plugin;
+
+    private final List<PendingDispense> pendingDispenses = new ArrayList<>();
 
     public WorldListener(CannonDebugPlugin plugin) {
         this.plugin = plugin;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void startProfiling(BlockDispenseEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void queueDispenseTracking(BlockDispenseEvent event) {
         // Do nothing if block is not a dispenser.
         Block block = event.getBlock();
         if (!isDispenser(block.getType())) return;
@@ -37,34 +47,40 @@ public class WorldListener implements Listener {
         // Do nothing if not shot TNT.
         if (!isExplosives(event.getItem().getType())) return;
 
-        // Loop through each user profile.
-        BlockSelection selection;
-        EntityTracker tracker = null;
-        for (User user : plugin.getUsers().values()) {
-            // Do nothing if user is not attempting to profile current block.
-            selection = user.getSelection(block.getLocation());
-            if (selection == null) {
-                continue;
-            }
+        // Do nothing if dispenser has no direction to trace from.
+        if (!(block.getBlockData() instanceof Directional directional)) return;
 
-            // Build a new tracker due to it being used.
-            if (tracker == null) {
-                // Cancel the event.
-                event.setCancelled(true);
+        // Gather every selection currently watching this dispenser.
+        List<BlockSelection> selections = getSelections(block.getLocation());
+        if (selections.isEmpty()) {
+            return;
+        }
 
-                // Shoot a new falling block with the exact same properties as current.
-                BlockFace face = ((Dispenser) block.getState().getData()).getFacing();
-                Location location = block.getLocation().clone();
-                location.add(face.getModX() + 0.5, face.getModY(), face.getModZ() + 0.5);
-                TNTPrimed tnt = block.getWorld().spawn(location, TNTPrimed.class);
-                tracker = new EntityTracker(tnt.getType(), plugin.getCurrentTick());
-                tracker.setEntity(tnt);
-                plugin.getActiveTrackers().add(tracker);
-            }
+        // Match the TNT entity when it spawns so vanilla Paper dispense behavior stays intact.
+        prunePendingDispenses();
+        pendingDispenses.add(new PendingDispense(getExpectedDispenseLocation(block, directional), plugin.getCurrentTick(), selections));
+    }
 
-            // Add block tracker to user.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void startProfiling(EntitySpawnEvent event) {
+        if (!(event.getEntity() instanceof TNTPrimed tnt)) {
+            return;
+        }
+
+        PendingDispense pendingDispense = findPendingDispense(tnt.getLocation());
+        if (pendingDispense == null) {
+            return;
+        }
+
+        EntityTracker tracker = new EntityTracker(tnt.getType(), plugin.getCurrentTick());
+        tracker.setEntity(tnt);
+        plugin.getActiveTrackers().add(tracker);
+
+        for (BlockSelection selection : pendingDispense.selections) {
             selection.setTracker(tracker);
         }
+
+        pendingDispenses.remove(pendingDispense);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -95,6 +111,70 @@ public class WorldListener implements Listener {
 
             // Add block tracker to user.
             selection.setTracker(tracker);
+        }
+    }
+
+    private List<BlockSelection> getSelections(Location location) {
+        List<BlockSelection> selections = new ArrayList<>();
+        for (User user : plugin.getUsers().values()) {
+            BlockSelection selection = user.getSelection(location);
+            if (selection != null) {
+                selections.add(selection);
+            }
+        }
+        return selections;
+    }
+
+    private Location getExpectedDispenseLocation(Block block, Directional directional) {
+        return block.getLocation().clone()
+                .add(0.5, 0.5, 0.5)
+                .add(directional.getFacing().getDirection().multiply(0.7));
+    }
+
+    private PendingDispense findPendingDispense(Location entityLocation) {
+        prunePendingDispenses();
+
+        PendingDispense closest = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (PendingDispense pendingDispense : pendingDispenses) {
+            if (!pendingDispense.expectedLocation.getWorld().equals(entityLocation.getWorld())) {
+                continue;
+            }
+
+            double distance = pendingDispense.expectedLocation.distanceSquared(entityLocation);
+            if (distance > TNT_MATCH_RADIUS_SQUARED || distance >= closestDistance) {
+                continue;
+            }
+
+            closest = pendingDispense;
+            closestDistance = distance;
+        }
+        return closest;
+    }
+
+    private void prunePendingDispenses() {
+        long currentTick = plugin.getCurrentTick();
+        Iterator<PendingDispense> iterator = pendingDispenses.iterator();
+        while (iterator.hasNext()) {
+            PendingDispense pendingDispense = iterator.next();
+            if (currentTick - pendingDispense.tick > MAX_PENDING_TICKS) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private static final class PendingDispense {
+
+        private final Location expectedLocation;
+
+        private final long tick;
+
+        private final List<BlockSelection> selections;
+
+        private PendingDispense(Location expectedLocation, long tick, List<BlockSelection> selections) {
+            this.expectedLocation = expectedLocation;
+            this.tick = tick;
+            this.selections = selections;
         }
     }
 

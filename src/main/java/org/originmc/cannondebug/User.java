@@ -25,14 +25,12 @@
 
 package org.originmc.cannondebug;
 
-import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 public final class User {
 
     private final Player base;
@@ -46,6 +44,46 @@ public final class User {
     private boolean previewing;
 
     private FancyPager pager = FancyPager.DEFAULT;
+
+    public User(Player base) {
+        this.base = base;
+    }
+
+    public Player getBase() {
+        return base;
+    }
+
+    public List<BlockSelection> getSelections() {
+        return selections;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public boolean isSelecting() {
+        return selecting;
+    }
+
+    public void setSelecting(boolean selecting) {
+        this.selecting = selecting;
+    }
+
+    public boolean isPreviewing() {
+        return previewing;
+    }
+
+    public void setPreviewing(boolean previewing) {
+        this.previewing = previewing;
+    }
+
+    public FancyPager getPager() {
+        return pager;
+    }
+
+    public void setPager(FancyPager pager) {
+        this.pager = pager;
+    }
 
     public BlockSelection getSelection(int id) {
         for (BlockSelection selection : selections) {

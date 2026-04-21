@@ -25,12 +25,10 @@
 
 package org.originmc.cannondebug;
 
-import lombok.Data;
 import mkremins.fanciful.FancyMessage;
 
 import static org.bukkit.ChatColor.*;
 
-@Data
 public final class FancyPager {
 
     public static final FancyPager DEFAULT = new FancyPager("Default Pager", new FancyMessage[]{});
@@ -123,6 +121,14 @@ public final class FancyPager {
 
     public FancyMessage[] getPage(int page) {
         return pages[page];
+    }
+
+    public int getPageCount() {
+        return pageCount;
+    }
+
+    public int getTotalLines() {
+        return totalLines;
     }
 
 }
