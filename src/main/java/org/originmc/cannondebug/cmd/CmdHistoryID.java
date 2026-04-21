@@ -119,14 +119,14 @@ public final class CmdHistoryID extends CommandExecutor {
                             .color(WHITE)
                             .formattedTooltip(
                                     new FancyMessage("LOCATION").color(YELLOW).style(BOLD),
-                                    new FancyMessage("X: ").color(WHITE).then("" + location.getX()).color(RED),
-                                    new FancyMessage("Y: ").color(WHITE).then("" + location.getY()).color(RED),
-                                    new FancyMessage("Z: ").color(WHITE).then("" + location.getZ()).color(RED),
+                                    new FancyMessage("X: ").color(WHITE).then(NumberUtils.formatDouble(location.getX())).color(RED),
+                                    new FancyMessage("Y: ").color(WHITE).then(NumberUtils.formatDouble(location.getY())).color(RED),
+                                    new FancyMessage("Z: ").color(WHITE).then(NumberUtils.formatDouble(location.getZ())).color(RED),
                                     new FancyMessage(""),
                                     new FancyMessage("VELOCITY").color(YELLOW).style(BOLD),
-                                    new FancyMessage("X: ").color(WHITE).then("" + velocity.getX()).color(RED),
-                                    new FancyMessage("Y: ").color(WHITE).then("" + velocity.getY()).color(RED),
-                                    new FancyMessage("Z: ").color(WHITE).then("" + velocity.getZ()).color(RED)
+                                    new FancyMessage("X: ").color(WHITE).then(NumberUtils.formatDouble(velocity.getX())).color(RED),
+                                    new FancyMessage("Y: ").color(WHITE).then(NumberUtils.formatDouble(velocity.getY())).color(RED),
+                                    new FancyMessage("Z: ").color(WHITE).then(NumberUtils.formatDouble(velocity.getZ())).color(RED)
                             )
             );
         }

@@ -33,6 +33,7 @@ import org.originmc.cannondebug.CannonDebugPlugin;
 import org.originmc.cannondebug.EntityTracker;
 import org.originmc.cannondebug.FancyPager;
 import org.originmc.cannondebug.utils.EnumUtils;
+import org.originmc.cannondebug.utils.NumberUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,7 +97,9 @@ public final class CmdHistoryAll extends CommandExecutor {
                             .then("Last location: ")
                             .color(WHITE)
 
-                            .then(latest.getBlockX() + " " + latest.getBlockY() + " " + latest.getBlockZ())
+                            .then(NumberUtils.formatDouble(latest.getX()) + " "
+                                    + NumberUtils.formatDouble(latest.getY()) + " "
+                                    + NumberUtils.formatDouble(latest.getZ()))
                             .color(RED)
             );
         }

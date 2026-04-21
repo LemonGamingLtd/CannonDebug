@@ -28,6 +28,8 @@ package org.originmc.cannondebug.utils;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 
+import java.util.Locale;
+
 public final class NumberUtils {
 
     /**
@@ -43,6 +45,16 @@ public final class NumberUtils {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    /**
+     * Formats a decimal value to two decimal places.
+     *
+     * @param value value to format.
+     * @return formatted string with two decimal places.
+     */
+    public static String formatDouble(double value) {
+        return String.format(Locale.US, "%.2f", value);
     }
 
     /**
